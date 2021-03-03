@@ -65,19 +65,32 @@ VLOGAN_VFLAGS   += -undef_vcs_macro
 $(BSG_MACHINE_PATH)/$(BSG_PLATFORM):
 	mkdir -p $@
 
+$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.saif: | $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)
+	echo "replicant_tb_top : $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top_saif/64" >> $@;
+
 $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.setup: | $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)
 	echo "replicant_tb_top : $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top/64" >> $@;
 
 $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top/AN.DB: $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.setup $(VHEADERS) $(VSOURCES)
-	SYNOPSYS_SIM_SETUP=$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.setup \
+	SYNOPSYS_SIM_SETUP=$< \
+	vlogan -work replicant_tb_top $(VLOGAN_VFLAGS) $(VLOGAN_DEFINES) \
+		$(VLOGAN_SOURCES) $(VLOGAN_INCLUDES) \
+		-l $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vlogan.log
+
+
+$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top_saif/AN.DB: VDEFINES += BSG_MACHINE_DISABLE_VCORE_PROFILING
+$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top_saif/AN.DB: VDEFINES += BSG_MACHINE_DISABLE_CACHE_PROFILING
+$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top_saif/AN.DB: VDEFINES += BSG_MACHINE_DISABLE_ROUTER_PROFILING
+$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top_saif/AN.DB: $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.saif $(VHEADERS) $(VSOURCES)
+	SYNOPSYS_SIM_SETUP=$< \
 	vlogan -work replicant_tb_top $(VLOGAN_VFLAGS) $(VLOGAN_DEFINES) \
 		$(VLOGAN_SOURCES) $(VLOGAN_INCLUDES) \
 		-l $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vlogan.log
 
 # libbsg_manycore_runtime will be compiled in $(BSG_PLATFORM_PATH)
-$(LEGACY_TESTS): LDFLAGS += -lbsgmc_cuda_legacy_pod_repl
-test_loader $(INDEPENDENT_TESTS): LDFLAGS += -lbsg_manycore_runtime -lm
-test_loader $(INDEPENDENT_TESTS): LDFLAGS += -L$(BSG_PLATFORM_PATH) -Wl,-rpath=$(BSG_PLATFORM_PATH)
+LDFLAGS += -lbsgmc_cuda_legacy_pod_repl
+LDFLAGS += -lbsg_manycore_runtime -lm
+LDFLAGS += -L$(BSG_PLATFORM_PATH) -Wl,-rpath=$(BSG_PLATFORM_PATH)
 
 VCS_LDFLAGS    += $(foreach def,$(LDFLAGS),-LDFLAGS "$(def)")
 VCS_VFLAGS     += -M -L -ntb_opts tb_timescale=1ps/1ps -lca -v2005
@@ -100,6 +113,13 @@ VCS_VFLAGS     += +lint=all,TFIPC-L,noSVA-UA,noSVA-NSVU,noVCDE,noSVA-AECASR
 %.debug: VCS_VFLAGS += +plusarg_save +vcs+vcdpluson +vcs+vcdplusmemon +memcbk
 %.debug: %.o $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top/AN.DB $(BSG_PLATFORM_PATH)/libbsg_manycore_runtime.so
 	SYNOPSYS_SIM_SETUP=$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.setup \
+	vcs replicant_tb_top $< $(VCS_LDFLAGS) $(VCS_VFLAGS) \
+		-Mdirectory=$@.tmp -o $@ -l $@.vcs.log
+
+%.saif: LDFLAGS += -lbsgmc_cuda_legacy_pod_repl
+%.saif: VCS_VFLAGS += -debug_pp
+%.saif: %.o $(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/vcs_simlibs/replicant_tb_top_saif/AN.DB $(BSG_PLATFORM_PATH)/libbsg_manycore_runtime.so $(BSG_PLATFORM_PATH)/libbsgmc_cuda_legacy_pod_repl.so
+	SYNOPSYS_SIM_SETUP=$(BSG_MACHINE_PATH)/$(BSG_PLATFORM)/synopsys_sim.saif \
 	vcs replicant_tb_top $< $(VCS_LDFLAGS) $(VCS_VFLAGS) \
 		-Mdirectory=$@.tmp -o $@ -l $@.vcs.log
 
