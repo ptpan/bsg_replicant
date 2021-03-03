@@ -335,4 +335,21 @@ module replicant_tb_top
 
 `endif
 
+   wor saif_en = 0;
+
+   bind vanilla_core vanilla_core_saif_dumper
+     #(
+       .origin_x_cord_p(`BSG_MACHINE_ORIGIN_X_CORD)
+       ,.origin_y_cord_p(`BSG_MACHINE_ORIGIN_Y_CORD)
+       ,.icache_tag_width_p(icache_tag_width_p)
+       ,.icache_entries_p(icache_entries_p)
+       ,.data_width_p(data_width_p)
+       )
+   saif_dumper
+   (
+    .*
+    ,.saif_en_i($root.`HOST_MODULE_PATH.saif_en)
+    ,.saif_en_o($root.`HOST_MODULE_PATH.saif_en)
+   );
+
 endmodule
