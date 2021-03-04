@@ -90,7 +90,7 @@ LIB_STRICT_OBJECTS += $(LIBRARIES_PATH)/bsg_manycore_memsys.o
 LIB_CXXSOURCES_CUDA_POD_REPL += $(LIBRARIES_PATH)/bsg_manycore_cuda_legacy_replicate.cpp
 
 # Objects that should be compiled with debug flags
-LIB_DEBUG_OBJECTS  +=
+LIB_DEBUG_OBJECTS  += $(LIBRARIES_PATH)/bsg_manycore.o
 
 LIB_OBJECTS += $(patsubst %cpp,%o,$(LIB_CXXSOURCES))
 LIB_OBJECTS += $(patsubst %c,%o,$(LIB_CSOURCES))
