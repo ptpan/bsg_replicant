@@ -30,7 +30,7 @@ PLATFORM_CXXSOURCES += $(LIBRARIES_PATH)/platforms/dpi-verilator/bsg_manycore_pl
 
 PLATFORM_CXXSOURCES += $(LIBRARIES_PATH)/platforms/bigblade-vcs/bsg_manycore_simulator.cpp
 
-PLATFORM_CXXSOURCES += $(LIBRARIES_PATH)/features/profiler/noimpl/bsg_manycore_profiler.cpp
+PLATFORM_CXXSOURCES += $(LIBRARIES_PATH)/features/profiler/simulation/bsg_manycore_profiler.cpp
 PLATFORM_CXXSOURCES += $(LIBRARIES_PATH)/features/tracer/simulation/bsg_manycore_tracer.cpp
 
 # The aws-vcs platform supports simulation DMA on certain
@@ -63,7 +63,13 @@ $(BSG_PLATFORM_PATH)/libbsg_manycore_runtime.so.1.0: $(PLATFORM_OBJECTS)
 $(BSG_PLATFORM_PATH)/libbsg_manycore_runtime.so.1: %: %.0
 	ln -sf $@.0 $@
 
+$(BSG_PLATFORM_PATH)/libbsgmc_cuda_legacy_pod_repl.so.1: %: %.0
+	ln -sf $@.0 $@
+
 $(BSG_PLATFORM_PATH)/libbsg_manycore_runtime.so: %: %.1
+	ln -sf $@.1 $@
+
+$(BSG_PLATFORM_PATH)/libbsgmc_cuda_legacy_pod_repl.so: %: %.1
 	ln -sf $@.1 $@
 
 platform.clean:

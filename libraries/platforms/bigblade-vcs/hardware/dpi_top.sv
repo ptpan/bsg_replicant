@@ -21,6 +21,8 @@ module replicant_tb_top
 
       $display("[INFO][TESTBENCH] bsg_machine_pod_tiles_x_gp            = %d", bsg_machine_pod_tiles_x_gp);
       $display("[INFO][TESTBENCH] bsg_machine_pod_tiles_y_gp            = %d", bsg_machine_pod_tiles_y_gp);
+      $display("[INFO][TESTBENCH] bsg_machine_pod_tiles_subarray_x_gp   = %d", bsg_machine_pod_tiles_subarray_x_gp);
+      $display("[INFO][TESTBENCH] bsg_machine_pod_tiles_subarray_y_gp   = %d", bsg_machine_pod_tiles_subarray_y_gp);
       $display("[INFO][TESTBENCH] bsg_machine_pod_llcaches_gp           = %d", bsg_machine_pod_llcaches_gp);
 
       $display("[INFO][TESTBENCH] bsg_machine_noc_cfg_gp                = %s", bsg_machine_noc_cfg_gp.name());
@@ -39,7 +41,6 @@ module replicant_tb_top
       $display("[INFO][TESTBENCH] bsg_machine_llcache_words_gp          = %d", bsg_machine_llcache_words_gp);
       $display("[INFO][TESTBENCH] bsg_machine_llcache_miss_fifo_els_gp  = %d", bsg_machine_llcache_miss_fifo_els_gp);
       $display("[INFO][TESTBENCH] bsg_machine_llcache_channel_width_gp  = %d", bsg_machine_llcache_channel_width_gp);
-      $display("[INFO][TESTBENCH] bsg_machine_llcache_rsp_fifo_els_gp   = %d", bsg_machine_llcache_rsp_fifo_els_gp);
 
       $display("[INFO][TESTBENCH] bsg_machine_dram_bank_words_gp        = %d", bsg_machine_dram_bank_words_gp);
       $display("[INFO][TESTBENCH] bsg_machine_dram_channels_gp          = %d", bsg_machine_dram_channels_gp);
@@ -48,6 +49,10 @@ module replicant_tb_top
 
       $display("[INFO][TESTBENCH] bsg_machine_io_coord_x_gp             = %d", bsg_machine_io_coord_x_gp);
       $display("[INFO][TESTBENCH] bsg_machine_io_coord_y_gp             = %d", bsg_machine_io_coord_y_gp);
+
+      $display("[INFO][TESTBENCH] bsg_machine_enable_vcore_profiling_lp = %d", bsg_machine_enable_vcore_profiling_lp);
+      $display("[INFO][TESTBENCH] bsg_machine_enable_router_profiling_lp= %d", bsg_machine_enable_router_profiling_lp);
+      $display("[INFO][TESTBENCH] bsg_machine_enable_cache_profiling_lp = %d", bsg_machine_enable_cache_profiling_lp);
 
       $display("[INFO][TESTBENCH] bsg_machine_name_gp                   = %s", bsg_machine_name_gp);
    end
@@ -60,9 +65,25 @@ module replicant_tb_top
    localparam bsg_machine_wh_cid_width_lp = `BSG_SAFE_CLOG2(bsg_machine_wh_ruche_factor_lp*2);
    localparam bsg_machine_wh_len_width_lp = `BSG_SAFE_CLOG2(1 + ((bsg_machine_llcache_line_words_gp * bsg_machine_llcache_data_width_lp) / bsg_machine_llcache_channel_width_gp));
    localparam bsg_machine_wh_coord_width_lp = bsg_machine_noc_coord_x_width_gp;
+
+// These are macros... for reasons. 
+`ifndef BSG_MACHINE_DISABLE_VCORE_PROFILING
+   localparam bsg_machine_enable_vcore_profiling_lp = 1;
+`else
    localparam bsg_machine_enable_vcore_profiling_lp = 0;
-   localparam bsg_machine_enable_cache_profiling_lp = 1;
+`endif
+
+`ifndef BSG_MACHINE_DISABLE_ROUTER_PROFILING
    localparam bsg_machine_enable_router_profiling_lp = 1;
+`else
+   localparam bsg_machine_enable_router_profiling_lp = 0;
+`endif
+
+`ifndef BSG_MACHINE_DISABLE_CACHE_PROFILING
+   localparam bsg_machine_enable_cache_profiling_lp = 1;
+`else
+   localparam bsg_machine_enable_cache_profiling_lp = 0;
+`endif
 
    // Clock generator period
    localparam lc_cycle_time_ps_lp = 1000;
@@ -157,6 +178,9 @@ module replicant_tb_top
 
        ,.num_tiles_x_p(bsg_machine_pod_tiles_x_gp)
        ,.num_tiles_y_p(bsg_machine_pod_tiles_y_gp)
+       ,.num_subarray_x_p(bsg_machine_pod_tiles_subarray_x_gp)
+       ,.num_subarray_y_p(bsg_machine_pod_tiles_subarray_y_gp)
+
        ,.x_cord_width_p(bsg_machine_noc_coord_x_width_gp)
        ,.y_cord_width_p(bsg_machine_noc_coord_y_width_gp)
 
@@ -175,7 +199,6 @@ module replicant_tb_top
        ,.vcache_ways_p(bsg_machine_llcache_ways_gp)
        ,.vcache_block_size_in_words_p(bsg_machine_llcache_line_words_gp)
        ,.vcache_dma_data_width_p(bsg_machine_llcache_channel_width_gp)
-       ,.vcache_rsp_fifo_els_p(bsg_machine_llcache_rsp_fifo_els_gp)
 
        ,.wh_flit_width_p(bsg_machine_wh_flit_width_lp)
        ,.wh_ruche_factor_p(bsg_machine_wh_ruche_factor_lp)
@@ -185,10 +208,10 @@ module replicant_tb_top
 
        ,.bsg_manycore_mem_cfg_p(bsg_machine_dram_cfg_gp)
        ,.bsg_dram_size_p(bsg_machine_dram_words_gp)
+
        ,.enable_vcore_profiling_p(bsg_machine_enable_vcore_profiling_lp)
-       ,.enable_cache_profiling_p(bsg_machine_enable_cache_profiling_lp)
        ,.enable_router_profiling_p(bsg_machine_enable_router_profiling_lp)
-       ,.hetero_type_vec_p(bsg_machine_hetero_type_vec_gp)
+       ,.enable_cache_profiling_p(bsg_machine_enable_cache_profiling_lp)
 
        ,.reset_depth_p(reset_depth_lp)
        )
