@@ -394,7 +394,7 @@ RISCV_LDFLAGS += -Wl,--no-check-sections
 # group size. RISCV_TARGET_OBJECTS are .rvo files that will be linked
 # in the final binary.
 %.riscv: crt.rvo  main.rvo $(RISCV_TARGET_OBJECTS) $(RISCV_LINK_SCRIPT) $(LIBBSG_MANYCORE_OBJECTS)
-	$(RISCV_LD) -T $(RISCV_LINK_SCRIPT) $(RISCV_LDFLAGS) $(filter %.rvo,$^) -o $@
+	$(RISCV_LD) -T $(RISCV_LINK_SCRIPT) $(filter %.rvo,$^) $(RISCV_LDFLAGS) -o $@
 
 %.dis: %.riscv
 	$(RISCV_OBJDUMP) -dS $<
